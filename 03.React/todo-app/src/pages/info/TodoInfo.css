@@ -1,9 +1,7 @@
 /* info */
 
-#contents {
-  width: 1024px;
-  height: 500px;
-  position: relative;
+.back-button {
+  width: fit-content;
 }
 
 #detail-container {
@@ -36,6 +34,7 @@
 /*내용 박스 안 text*/
 #detail-content {
   line-height: 32px;
+  text-align: start;
 }
 
 /*중요 체크상자 박스*/
@@ -69,4 +68,5 @@
 .detail-label {
   font-size: 20px;
   font-weight: bold;
+  text-align: start;
 }

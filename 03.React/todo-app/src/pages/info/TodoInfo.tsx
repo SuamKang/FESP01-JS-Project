@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 
-import BASE_URL from "../../api/BaseUrl";
+import BASE_URL from "../../apis/BaseUrl";
 import Button from "../../layout/Button";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -15,6 +15,7 @@ const TodoInfo: React.FC = () => {
   const navigate = useNavigate();
   const params = new URLSearchParams(location.search);
   const _id = params.get("_id");
+  console.log(_id);
 
   const [todoData, setTodoData] = useState({
     title: "",
@@ -58,15 +59,15 @@ const TodoInfo: React.FC = () => {
 
   return (
     <>
-      <button
-        onClick={() => {
-          navigate("/");
-        }}
-        className="cancel-button common-button"
-      >
-        뒤로가기
-      </button>
       <div id="contents">
+        <button
+          onClick={() => {
+            navigate("/");
+          }}
+          className="back-button common-button"
+        >
+          뒤로가기
+        </button>
         <div id="detail-container">
           <div className="title-box">
             <h3 id="detail-title">{todoData.title}</h3>
@@ -100,7 +101,7 @@ const TodoInfo: React.FC = () => {
               className="edit-button common-button"
               type="button"
               text="수정"
-              handleClick={() => navigate("/edit")}
+              handleClick={() => navigate(`/edit?_id=${_id}`)}
             />
             <Button
               className="delete-button common-button"
