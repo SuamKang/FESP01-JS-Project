@@ -1,9 +1,4 @@
 /* list */
-#contents {
-  width: 1024px;
-  height: 500px;
-  position: relative;
-}
 
 /*필터,등록 버튼 컨테이너*/
 .active-container {
@@ -11,6 +6,7 @@
   justify-content: space-between;
   align-items: center;
   margin: 40px auto;
+  width: 100%;
 }
 
 /*등록버튼*/

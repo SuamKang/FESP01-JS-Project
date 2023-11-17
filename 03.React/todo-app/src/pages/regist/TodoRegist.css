@@ -1,9 +1,9 @@
 /*전체 컨테이너*/
-#regist-contents {
+/* #regist-contents {
   width: 1024px;
   height: 500px;
   position: relative;
-}
+} */
 /*폼 양식 컨테이너*/
 #regist-todo-form {
   display: flex;
@@ -23,6 +23,7 @@
 .regist-register-label {
   font-size: 20px;
   font-weight: bold;
+  text-align: start;
 }
 .regist-register-input {
   padding: 10px;
