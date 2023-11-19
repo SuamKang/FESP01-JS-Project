@@ -1,13 +1,13 @@
 // 기본 타입 지정
 interface TodoItem {
-  _id?: number;
+  _id: number;
   title: string;
   content: string;
   done: boolean;
   important: boolean;
   deadline: string;
-  createdAt?: string;
-  updatedAt?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 type TodoList = TodoItem[];
