@@ -1,0 +1,20 @@
+/* 검색바*/
+.search-container {
+  display: flex;
+  gap: 10px;
+}
+
+.search-bar {
+  width: inherit;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 10px;
+}
+
+.btn {
+  background-color: var(--button-color);
+  padding: 10px 20px;
+  color: #fff;
+  border-radius: 10px;
+  border: none;
+}

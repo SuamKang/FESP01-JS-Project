@@ -1,25 +1,31 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import * as _ from 'lodash';
+import * as _ from "lodash";
 
-import BaseUrl from "../../api/BaseUrl";
+import BaseUrl from "@/apis/BaseUrl";
 import TodoListItem from "./TodoListItem";
-import useDataFilter from "../../hooks/useDataFilter";
+import SearchForm from "@/components/SearchForm";
+import useDataFilter from "@/hooks/useDataFilter";
+
+import { useTodoStore } from "@/store/todoStore";
 
 import "./TodoList.css";
 
 const TodoList: React.FC = () => {
   // const { _id } = useParams();
   const navigate = useNavigate();
+  const todoStore = useTodoStore(); // 전역 raw todolist data
 
-  const [allTodos, setAllTodos] = useState<TodoList>([]);
+  const { filteredData, filterData } = useDataFilter(todoStore.todos);
+
   const [importantTodos, setImportantTodos] = useState<TodoList>([]);
   const [todos, setTodos] = useState<TodoList>([]);
+  const [filterView, setFilterView] = useState({ value: "all", status: false });
 
-  const { filteredData, filterData } = useDataFilter(allTodos);
-
-  const [filterView, setFilterView] = useState({ value: 'all', status: false });
+  // 검색기능을 위한 상태들
+  const [isSearch, setIsSearch] = useState(false);
+  const [searchFilterdList, setSearchFilterdList] = useState<TodoList>([]);
 
   // get 요청
   const fetchData = useCallback(async () => {
@@ -30,12 +36,15 @@ const TodoList: React.FC = () => {
       // 중요한 할 일과 일반 할 일을 분리
       const newImportantTodos: TodoItem[] = [];
       const newTodos: TodoItem[] = [];
+
+      // 서버데이터받아와서 중요와 일반 나눠서 항목들 추가
       todosResponse.forEach((todo: TodoItem) => {
         todo.important ? newImportantTodos.push(todo) : newTodos.push(todo);
       });
 
-      // 상태를 한 번에 업데이트
-      setAllTodos(todosResponse);
+      // 정제한 상태 그대로 전역 스토어 업데이트
+      todoStore.setTodos(todosResponse);
+      // 중요 리스트와 일반 리스트는 지역상태로 저장
       setImportantTodos(newImportantTodos);
       setTodos(newTodos);
     } catch (error) {
@@ -44,7 +53,12 @@ const TodoList: React.FC = () => {
   }, []);
 
   /* active-container 필터링 함수 */
-  const filterHandler = (value: string, setFilterView: React.Dispatch<React.SetStateAction<{ value: string, status: boolean }>>) => {
+  const filterHandler = (
+    value: string,
+    setFilterView: React.Dispatch<
+      React.SetStateAction<{ value: string; status: boolean }>
+    >
+  ) => {
     const mergeTodos = [...importantTodos, ...todos];
     filterData(mergeTodos, value, setFilterView);
   };
@@ -58,7 +72,7 @@ const TodoList: React.FC = () => {
       const mergeTodos = [...importantTodos, ...todos];
 
       const allCheckRequset = await Promise.allSettled(
-        mergeTodos.map((item) => 
+        mergeTodos.map((item) =>
           axios.patch(`${BaseUrl}/${item._id}`, { done: true })
         )
       );
@@ -66,17 +80,17 @@ const TodoList: React.FC = () => {
       const newImportantTodos: TodoItem[] = [];
       const newTodos: TodoItem[] = [];
       allCheckRequset.forEach((todo) => {
-        if (todo.status === 'fulfilled') {
+        if (todo.status === "fulfilled") {
           // 중요 항목 업데이트
           if (todo.value.data.item.important) {
             newImportantTodos.push(todo.value.data.item);
-          } 
+          }
           // 일반 항목 업데이트
           else {
             newTodos.push(todo.value.data.item);
           }
-        } else if (todo.status === 'rejected') {
-          console.error('에러');
+        } else if (todo.status === "rejected") {
+          console.error("에러");
         }
       });
 
@@ -102,24 +116,25 @@ const TodoList: React.FC = () => {
           await Promise.allSettled(
             filteredData.map((todo) => axios.delete(`${BaseUrl}/${todo._id}`))
           );
-            
-          const diffTodos = _.differenceBy(mergeTodos, filteredData, '_id');
-          
+
+          const diffTodos = _.differenceBy(mergeTodos, filteredData, "_id");
+
           const newImportantTodos: TodoItem[] = [];
           const newTodos: TodoItem[] = [];
-          diffTodos.forEach(todo => {
+          diffTodos.forEach((todo) => {
             todo.important ? newImportantTodos.push(todo) : newTodos.push(todo);
           });
           filterData([], filterView.value, setFilterView);
           setImportantTodos([...newImportantTodos]);
           setTodos([...newTodos]);
-        } 
+        }
         // 전체 항목일 경우
         else {
           await Promise.allSettled(
             mergeTodos.map((todo) => axios.delete(`${BaseUrl}/${todo._id}`))
           );
-          setAllTodos([]);
+
+          todoStore.setTodos([]);
           setImportantTodos([]);
           setTodos([]);
         }
@@ -223,6 +238,16 @@ const TodoList: React.FC = () => {
     }
   };
 
+  // 검색기능
+  const searchHandler = (inputData: string) => {
+    // 1. SearchForm으로부터 받은 인풋양식텍스트를 원본투두리스트에다 필터링해주는 작업 진행
+    const searchFilteredArr = todoStore.todos.filter((todo) => {
+      return todo.title.includes(inputData);
+    });
+    // 2. 검색리스트 배열에 업데이트
+    setSearchFilterdList(searchFilteredArr);
+  };
+
   useEffect(() => {
     fetchData();
   }, [fetchData]);
@@ -267,6 +292,12 @@ const TodoList: React.FC = () => {
         >
           등록
         </button>
+        <SearchForm
+          placehordler="검색해 볼테야?"
+          text="search"
+          onSearch={searchHandler}
+          setIsSearch={setIsSearch}
+        />
       </div>
       <div id="contents" className="todo-container">
         <div className="todo-container__controller">
@@ -288,7 +319,18 @@ const TodoList: React.FC = () => {
         <div className="todo-list-all">
           {/* 필터버튼 클릭후 해당 필터 데이터가 있다면 필터링 배열로 리턴 */}
           {filterView.status ? (
-            filteredData.map((todo) => (
+            filteredData?.map((todo) => (
+              <TodoListItem
+                key={todo._id!}
+                isCompleteCheck={isCompleteCheck}
+                deleteItem={deleteItem}
+                importantItem={importantItem}
+                todo={todo}
+              />
+            ))
+          ) : isSearch ? (
+            // 검색필터 적용된 리스트
+            searchFilterdList?.map((todo) => (
               <TodoListItem
                 key={todo._id}
                 isCompleteCheck={isCompleteCheck}
@@ -303,7 +345,7 @@ const TodoList: React.FC = () => {
               <ul className="important-list">
                 {importantTodos.map((todo) => (
                   <TodoListItem
-                    key={todo._id}
+                    key={todo._id!}
                     isCompleteCheck={isCompleteCheck}
                     deleteItem={deleteItem}
                     importantItem={importantItem}
@@ -316,7 +358,7 @@ const TodoList: React.FC = () => {
                 {todos?.map((todo) => {
                   return (
                     <TodoListItem
-                      key={todo._id}
+                      key={todo._id!}
                       isCompleteCheck={isCompleteCheck}
                       deleteItem={deleteItem}
                       importantItem={importantItem}
