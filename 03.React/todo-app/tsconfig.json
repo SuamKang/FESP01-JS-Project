@@ -8,11 +8,18 @@
     /*상대경로 설정*/
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@pages/*": ["src/pages/*"],
+      "@apis/*": ["src/apis/*"],
+      "@assets/*": ["src/assets/*"],
+      "@layout/*": ["src/layout/*"],
+      "@hooks/*": ["src/hooks/*"],
+      "@components/*": ["src/components/*"],
+      "@store/*": ["src/store/*"]
     },
 
     /* Javascript Support(자바스크립트관련 속성 추가)*/
-    "allowJs": true, // js 모듈 사용 가능
+    // "allowJs": true, // js 모듈 사용 가능
 
     /* Bundler mode */
     "moduleResolution": "bundler",
