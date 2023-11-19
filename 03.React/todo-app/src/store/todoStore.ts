@@ -3,21 +3,23 @@
 import { create } from "zustand";
 
 interface TodoListState {
-  todos: TodoItem[] | TodoList;
-  setTodo: (todos: TodoList) => void;
+  todos: TodoList;
+  setTodos: (todos: TodoList) => void;
   addTodo: (newTodo: TodoItem) => void;
   removeTodo: (id: number) => void;
-  eidtTodo: (updateTodo: TodoItem) => void;
+  editTodo: (updateTodo: TodoItem) => void;
 }
 
 export const useTodoStore = create<TodoListState>((set) => ({
   todos: [],
-  setTodo: (todos) => {
+  setTodos: (todos) => {
     set(() => ({
       todos: todos,
     }));
   },
   addTodo: (newTodo) => {
+    console.log("addTodo 실행");
+    console.log("newTodo:", newTodo);
     set((state) => ({
       todos: [...state.todos, newTodo],
     }));
@@ -27,7 +29,7 @@ export const useTodoStore = create<TodoListState>((set) => ({
       todos: state.todos.filter((todo) => todo._id !== id),
     }));
   },
-  eidtTodo: (updateTodo: TodoItem) => {
+  editTodo: (updateTodo: TodoItem) => {
     set((state) => ({
       todos: state.todos.map((todo) =>
         todo._id === updateTodo._id ? updateTodo : todo
