@@ -1,16 +1,22 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import axios from "axios";
 
-import BASE_URL from "../../api/BaseUrl";
+import BASE_URL from "../../apis/BaseUrl";
 import Button from "../../layout/Button";
 
 import "./TodoUpdate.css";
+import { useTodoStore } from "../../store/todoStore";
 
 const TodoUpdate: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+
+  const queryParams = new URLSearchParams(location.search);
+  const _id = queryParams.get("_id");
+
+  const todoStore = useTodoStore();
 
   const [inputTitle, setInputTitle] = useState("");
   const [textareaContent, setTextareaContent] = useState("");
@@ -19,23 +25,39 @@ const TodoUpdate: React.FC = () => {
   );
   const [inputImportant, setInputImportant] = useState(false);
 
-  // 쿼리스트링 값 가져오기
-  const queryParams = new URLSearchParams(location.search);
-  const _id = queryParams.get("_id");
+  // axios 가져오기 -> 전역상태를 불러오는것으로 불필요한 서버요청 제거
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     const response = await axios(`${BASE_URL}/${_id}`);
 
-  // axios 가져오기
+  //     console.log(response);
+  //     const getDataItem = response.data.item;
+
+  //     setInputTitle(getDataItem.title);
+  //     setTextareaContent(getDataItem.content);
+  //     setInputDeadline(getDataItem.deadline);
+  //     setInputImportant(getDataItem.important);
+  //   };
+
+  //   fetchData();
+  // }, [_id]);
+
+  // 전역스토어에서 꺼내 적용
+  const getTodo = () => {
+    const getTodoItem = todoStore.todos.find(
+      (todo) => todo._id === Number(_id)
+    );
+
+    console.log(getTodoItem?.content);
+    setInputTitle(getTodoItem!.title);
+    setTextareaContent(getTodoItem!.content);
+    setInputDeadline(getTodoItem!.deadline);
+    setInputImportant(getTodoItem!.important);
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      const res = (await axios<TodoItem>(`${BASE_URL}/${_id}`)).data;
-
-      setInputTitle(res.title);
-      setTextareaContent(res.content);
-      setInputDeadline(res.deadline);
-      setInputImportant(res.important);
-    };
-
-    fetchData();
-  }, [_id]);
+    getTodo();
+  }, [todoStore]);
 
   // 폼 submit
   const handleEdit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -86,7 +108,7 @@ const TodoUpdate: React.FC = () => {
 
   return (
     <div id="page">
-      <div id="update-contents">
+      <div id="contents">
         <form id="update-todo-form" onSubmit={handleEdit}>
           <div className="update-title-box">
             <label
@@ -151,9 +173,13 @@ const TodoUpdate: React.FC = () => {
             </label>
           </div>
           <div className="update-active-box">
-            <Button className="submit-button" type="submit" text="수정완료" />
             <Button
-              className="cancel-button"
+              className="submit-button common-button"
+              type="submit"
+              text="수정완료"
+            />
+            <Button
+              className="cancel-button common-button"
               type="button"
               text="취소"
               handleClick={() => navigate(`/info?_id=${_id}`)}

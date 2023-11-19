@@ -9,13 +9,15 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faStar } from "@fortawesome/free-solid-svg-icons";
 
 import "./TodoInfo.css";
+import { useTodoStore } from "../../store/todoStore";
 
 const TodoInfo: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const params = new URLSearchParams(location.search);
   const _id = params.get("_id");
-  console.log(_id);
+
+  const todoStore = useTodoStore();
 
   const [todoData, setTodoData] = useState({
     title: "",
@@ -25,27 +27,49 @@ const TodoInfo: React.FC = () => {
   });
   const [isImportant, setIsImportant] = useState("");
 
+  // useEffect(() => {
+  //   const getDetailTodo = async () => {
+  //     const response = await axios(`${BASE_URL}/${_id}`);
+
+  //     const getDataItem = response.data.item;
+
+  //     setTodoData({
+  //       title: getDataItem.title,
+  //       content: getDataItem.content,
+  //       deadline: getDataItem.deadline,
+  //       important: getDataItem.important,
+  //     });
+
+  //     setIsImportant(
+  //       getDataItem.important ? "var(--star-color)" : "var(--gray-color)"
+  //     );
+  //   };
+
+  //   getDetailTodo();
+  // }, [_id]);
+
+  // 전역스토어에서 꺼내 적용
+  const getTodo = () => {
+    const getTodoItem = todoStore.todos?.find(
+      (todo) => todo._id === Number(_id)
+    );
+    console.log(getTodoItem);
+
+    setTodoData({
+      title: getTodoItem!.title,
+      content: getTodoItem!.content,
+      deadline: getTodoItem!.deadline,
+      important: getTodoItem!.important,
+    });
+
+    setIsImportant(
+      getTodoItem!.important ? "var(--star-color)" : "var(--gray-color)"
+    );
+  };
+
   useEffect(() => {
-    const getDetailTodo = async () => {
-      const response = await axios(`${BASE_URL}/${_id}`);
-
-      const getDataItem = response.data.item;
-
-      console.log(getDataItem);
-      setTodoData({
-        title: getDataItem.title,
-        content: getDataItem.content,
-        deadline: getDataItem.deadline,
-        important: getDataItem.important,
-      });
-
-      setIsImportant(
-        getDataItem.important ? "var(--star-color)" : "var(--gray-color)"
-      );
-    };
-
-    getDetailTodo();
-  }, [_id]);
+    getTodo();
+  }, [todoStore]);
 
   const deleteDetailTodo = async () => {
     if (confirm("삭제하시겠습니까?")) {
